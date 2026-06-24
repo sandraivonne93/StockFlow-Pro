@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ───────────────────────────────────────────────────────────
+   Tokens de tema (light / dark). Usamos canales RGB para que
+   Tailwind pueda aplicar opacidad con la sintaxis <alpha-value>.
+   ─────────────────────────────────────────────────────────── */
+@layer base {
+  :root {
+    --color-surface: 255 255 255;
+    --color-surface-muted: 248 250 252;
+    --color-content: 15 23 42;
+    --color-content-muted: 100 116 139;
+    --color-border: 226 232 240;
+
+    color-scheme: light;
+  }
+
+  .dark {
+    --color-surface: 17 24 39;
+    --color-surface-muted: 11 16 28;
+    --color-content: 241 245 249;
+    --color-content-muted: 148 163 184;
+    --color-border: 39 50 71;
+
+    color-scheme: dark;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply antialiased;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    @apply bg-surface-muted text-content font-sans;
+    /* Transición suave al cambiar de tema. */
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
+  }
+
+  /* Scrollbar premium */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-content-muted/30;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-content-muted/50;
+  }
+}
+
+@layer components {
+  /* Tarjeta con efecto glassmorphism reutilizable. */
+  .glass {
+    @apply border border-white/10 bg-surface/70 backdrop-blur-xl;
+  }
+
+  /* Skeleton con efecto shimmer. */
+  .skeleton {
+    @apply relative overflow-hidden rounded-md bg-content-muted/15;
+  }
+  .skeleton::after {
+    content: '';
+    @apply absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/10 to-transparent;
+  }
+}
+
+@layer utilities {
+  /* Anillo de foco consistente para microinteracciones accesibles. */
+  .focus-ring {
+    @apply outline-none ring-offset-2 ring-offset-surface focus-visible:ring-2 focus-visible:ring-brand-500;
+  }
+}
