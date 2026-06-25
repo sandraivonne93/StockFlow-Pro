@@ -4,6 +4,8 @@ import { type UserRole } from '@/config';
 import type { AppUser } from '@/types';
 import type { ProfileRow } from '@/types/database';
 
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access -- workaround: los tipos Database escritos a mano no alinean con los genéricos de mutación de @supabase/supabase-js v2 */
+
 /** Credenciales para login con email/contraseña. */
 export interface LoginCredentials {
   email: string;
@@ -44,6 +46,23 @@ export const authService = {
     if (error) throw error;
   },
 
+  /** Registra un nuevo usuario (email + password). Usado para flujo de invitación. */
+  async signUp(
+    email: string,
+    password: string,
+    options?: { fullName?: string; redirectTo?: string },
+  ): Promise<void> {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: options?.redirectTo,
+        data: options?.fullName ? { full_name: options.fullName } : undefined,
+      },
+    });
+    if (error) throw error;
+  },
+
   /** Envía el correo de recuperación de contraseña. */
   async sendPasswordReset(email: string, redirectTo: string): Promise<void> {
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
@@ -61,6 +80,15 @@ export const authService = {
     const { data, error } = await supabase.auth.getSession();
     if (error) throw error;
     return data.session;
+  },
+
+  /** Actualiza datos editables del propio perfil (nombre, avatar). */
+  async updateProfile(userId: string, input: { fullName?: string; avatarUrl?: string }): Promise<void> {
+    const { error } = await (supabase as any)
+      .from('profiles')
+      .update({ full_name: input.fullName, avatar_url: input.avatarUrl })
+      .eq('id', userId);
+    if (error) throw error;
   },
 
   /** Carga el perfil (rol, tenant) del usuario autenticado. */

@@ -13,7 +13,7 @@ import { getAuthErrorMessage } from '@/lib/authErrors';
 
 /** Página de login premium con diseño split screen. */
 export default function LoginPage() {
-  const { signIn, signInWithGoogle } = useAuth();
+  const { signIn, signInWithGoogle, claimPendingInvitation } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -36,7 +36,13 @@ export default function LoginPage() {
   const onSubmit = async (values: LoginFormValues): Promise<void> => {
     try {
       await signIn({ email: values.email, password: values.password });
-      toast.success('¡Bienvenido!', 'Sesión iniciada correctamente.');
+      // Si venimos de un registro por invitación, reclamamos el token
+      const claimed = await claimPendingInvitation();
+      if (claimed) {
+        toast.success('¡Bienvenido!', 'Tu cuenta fue activada para la tienda.');
+      } else {
+        toast.success('¡Bienvenido!', 'Sesión iniciada correctamente.');
+      }
       navigate(fromPath, { replace: true });
     } catch (error) {
       toast.error('No se pudo iniciar sesión', getAuthErrorMessage(error));

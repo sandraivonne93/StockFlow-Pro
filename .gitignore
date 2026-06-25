@@ -26,3 +26,6 @@ npm-debug.log*
 
 # Tests
 coverage
+
+# Build info
+*.tsbuildinfo

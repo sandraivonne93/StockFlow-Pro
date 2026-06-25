@@ -4,12 +4,12 @@ SaaS multi-tenant de control de inventario. React 18 + TypeScript estricto + Vit
 
 ## Estado del proyecto
 
-- ✅ **Fase 1 — Fundación** (completada): proyecto, tema premium, modo oscuro, componentes UI base, layout con sidebar colapsable, router con lazy loading, 404, ESLint + Prettier, tests.
-- ⏳ Fase 2 — Autenticación (Supabase Auth + landing pública)
-- ⏳ Fase 3 — Panel Super Admin
-- ⏳ Fase 4 — Inventario Core
-- ⏳ Fase 5 — Exportación y Reportes
-- ⏳ Fase 6 — Despliegue
+- ✅ **Fase 1 — Fundación**: proyecto, tema premium, modo oscuro, componentes UI base, layout con sidebar colapsable, router con lazy loading, 404, ESLint + Prettier, tests.
+- ✅ **Fase 2 — Autenticación**: Supabase Auth (email + Google), login premium, recuperación de contraseña, registro por invitación, guards y landing pública.
+- ✅ **Fase 3 — Panel Super Admin**: dashboard global, CRUD de tiendas, invitaciones (link + WhatsApp), configuración por tienda.
+- ✅ **Fase 4 — Inventario Core**: productos (tabla/cuadrícula), categorías, movimientos con afectación de stock, dashboard de tienda y alertas.
+- ✅ **Fase 5 — Exportación y Reportes**: reportes filtrables y exportación a Excel.
+- ✅ **Fase 6 — Despliegue**: `vercel.json`, CI con GitHub Actions, endurecimiento de seguridad (RLS + privilegios de columna) y guía en [DEPLOY.md](DEPLOY.md).
 
 ## Requisitos
 

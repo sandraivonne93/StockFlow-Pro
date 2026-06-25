@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { tenantService, type TenantListParams } from '@/services';
+import { tenantService, type TenantListParams } from '@/services/tenantService';
 import type { TenantInput } from '@/types';
-import { TenantStatus } from '@/config';
+import { type TenantStatus } from '@/config';
 
 /** Claves de caché para las consultas de tiendas. */
 export const tenantKeys = {
@@ -60,6 +60,25 @@ export function useDeleteTenant() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => tenantService.remove(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: tenantKeys.all }),
+  });
+}
+
+/** La tienda del propio usuario (para la página de Configuración del cliente). */
+export function useMyTenant(tenantId: string | null) {
+  return useQuery({
+    queryKey: ['tenants', 'mine', tenantId],
+    queryFn: () => (tenantId ? tenantService.getById(tenantId) : Promise.resolve(null)),
+    enabled: Boolean(tenantId),
+  });
+}
+
+/** El usuario actualiza su propia tienda (nombre, color, logo). */
+export function useUpdateMyTenant() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { name: string; themeColor: string | null; logoUrl: string | null }) =>
+      tenantService.updateMyTenant(input),
     onSuccess: () => qc.invalidateQueries({ queryKey: tenantKeys.all }),
   });
 }

@@ -10,6 +10,7 @@ export const PATHS = {
   SETTINGS: '/configuracion',
   LOGIN: '/login',
   FORGOT_PASSWORD: '/recuperar-contrasena',
+  REGISTER: '/registro',
   NOT_FOUND: '*',
 } as const;
 

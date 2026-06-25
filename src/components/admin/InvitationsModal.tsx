@@ -29,6 +29,7 @@ const statusTone: Record<InvitationStatus, { label: string; tone: 'warning' | 's
 /** Modal para generar y gestionar invitaciones de una tienda. */
 export function InvitationsModal({ open, onClose, tenant }: InvitationsModalProps) {
   const toast = useToast();
+  const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -40,9 +41,14 @@ export function InvitationsModal({ open, onClose, tenant }: InvitationsModalProp
   const handleCreate = async (): Promise<void> => {
     if (!tenant) return;
     try {
-      await createMut.mutateAsync({ tenantId: tenant.id, phone: phone.trim() || null });
+      await createMut.mutateAsync({
+        tenantId: tenant.id,
+        email: email.trim() || null,
+        phone: phone.trim() || null,
+      });
+      setEmail('');
       setPhone('');
-      toast.success('Invitación creada', 'Comparte el link o envíalo por WhatsApp.');
+      toast.success('Invitación creada', 'Comparte el link con la persona invitada.');
     } catch {
       toast.error('No se pudo crear la invitación');
     }
@@ -67,8 +73,16 @@ export function InvitationsModal({ open, onClose, tenant }: InvitationsModalProp
       <div className="flex flex-col gap-3 rounded-xl border border-border bg-surface-muted/60 p-4 sm:flex-row sm:items-end">
         <div className="flex-1">
           <Input
-            label="Teléfono (opcional, para WhatsApp)"
-            placeholder="Ej. 521234567890 (con código de país)"
+            label="Correo electrónico (opcional)"
+            placeholder="invitado@tienda.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+        <div className="flex-1">
+          <Input
+            label="Teléfono (opcional para WhatsApp)"
+            placeholder="Ej. 521234567890"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
           />
@@ -77,8 +91,9 @@ export function InvitationsModal({ open, onClose, tenant }: InvitationsModalProp
           leftIcon={<Plus className="h-4 w-4" />}
           isLoading={createMut.isPending}
           onClick={() => void handleCreate()}
+          className="sm:mb-1"
         >
-          Generar invitación
+          Generar
         </Button>
       </div>
 
@@ -106,6 +121,7 @@ export function InvitationsModal({ open, onClose, tenant }: InvitationsModalProp
                     <Badge tone={tone} dot>
                       {label}
                     </Badge>
+                    {inv.email && <span className="text-xs text-content-muted">{inv.email}</span>}
                     {inv.phone && <span className="text-xs text-content-muted">{inv.phone}</span>}
                   </div>
                   <p className="mt-1 truncate font-mono text-xs text-content-muted">

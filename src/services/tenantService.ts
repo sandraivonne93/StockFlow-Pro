@@ -1,7 +1,9 @@
 import { supabase } from '@/lib/supabase';
-import { TenantStatus } from '@/config';
+import type { TenantStatus } from '@/config';
 import type { Paginated, Tenant, TenantInput } from '@/types';
 import type { TenantRow } from '@/types/database';
+
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access -- workaround for hand-written Supabase Database types not perfectly aligning with client generics on mutations */
 
 /** Convierte una fila de BD al modelo de dominio. */
 function mapRow(row: TenantRow): Tenant {
@@ -83,7 +85,7 @@ export const tenantService = {
         max_products: input.maxProducts,
         max_users: input.maxUsers,
         logo_url: input.logoUrl ?? null,
-      })
+      } as any)
       .select('*')
       .single();
     if (error) throw error;
@@ -92,7 +94,7 @@ export const tenantService = {
 
   /** Actualiza una tienda existente. */
   async update(id: string, input: Partial<TenantInput>): Promise<Tenant> {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('tenants')
       .update({
         name: input.name,
@@ -112,7 +114,10 @@ export const tenantService = {
 
   /** Cambia solo el estado (activar/desactivar). */
   async setStatus(id: string, status: TenantStatus): Promise<void> {
-    const { error } = await supabase.from('tenants').update({ status }).eq('id', id);
+    const { error } = await (supabase as any)
+      .from('tenants')
+      .update({ status })
+      .eq('id', id);
     if (error) throw error;
   },
 
@@ -120,5 +125,29 @@ export const tenantService = {
   async remove(id: string): Promise<void> {
     const { error } = await supabase.from('tenants').delete().eq('id', id);
     if (error) throw error;
+  },
+
+  /** Obtiene una tienda por id (usada por el cliente para ver/editar la suya). */
+  async getById(id: string): Promise<Tenant | null> {
+    const { data, error } = await supabase.from('tenants').select('*').eq('id', id).maybeSingle();
+    if (error) throw error;
+    return data ? mapRow(data) : null;
+  },
+
+  /**
+   * El usuario actualiza SU PROPIA tienda (nombre, color y logo) vía RPC seguro.
+   * No puede cambiar slug, estado ni límites (eso lo gestiona el Super Admin).
+   */
+  async updateMyTenant(input: { name: string; themeColor: string | null; logoUrl: string | null }): Promise<void> {
+    const { data, error } = await (supabase.rpc as any)('update_my_tenant', {
+      p_name: input.name,
+      p_theme_color: input.themeColor,
+      p_logo_url: input.logoUrl,
+    });
+    if (error) throw error;
+    const result = data as { success: boolean; error?: string };
+    if (!result?.success) {
+      throw new Error(result?.error || 'No se pudo actualizar la tienda');
+    }
   },
 };

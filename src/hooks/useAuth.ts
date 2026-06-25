@@ -12,6 +12,9 @@ export function useAuth() {
   const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle);
   const signOut = useAuthStore((s) => s.signOut);
   const sendPasswordReset = useAuthStore((s) => s.sendPasswordReset);
+  const signUp = useAuthStore((s) => s.signUp);
+  const claimPendingInvitation = useAuthStore((s) => s.claimPendingInvitation);
+  const refreshProfile = useAuthStore((s) => s.refreshProfile);
 
   return {
     status,
@@ -23,5 +26,8 @@ export function useAuth() {
     signInWithGoogle,
     signOut,
     sendPasswordReset,
+    signUp,
+    claimPendingInvitation,
+    refreshProfile,
   };
 }

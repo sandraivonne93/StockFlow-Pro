@@ -29,6 +29,21 @@ export enum InvitationStatus {
   Revoked = 'revoked',
 }
 
+/** Tipo de movimiento de stock. */
+export enum MovementType {
+  Entrada = 'entrada',
+  Salida = 'salida',
+}
+
+/** Motivos sugeridos para los movimientos de stock. */
+export const MOVEMENT_REASONS = {
+  entrada: ['Compra', 'Devolución de cliente', 'Ajuste de inventario', 'Producción', 'Otro'],
+  salida: ['Venta', 'Merma', 'Devolución a proveedor', 'Ajuste de inventario', 'Uso interno', 'Otro'],
+} as const;
+
+/** Unidades de medida comunes. */
+export const PRODUCT_UNITS = ['unidad', 'caja', 'kg', 'g', 'litro', 'ml', 'metro', 'paquete'] as const;
+
 /** Configuración de paginación por defecto. */
 export const PAGINATION = {
   DEFAULT_PAGE_SIZE: 20,

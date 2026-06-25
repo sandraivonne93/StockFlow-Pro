@@ -1,8 +1,10 @@
 import { create } from 'zustand';
 import type { Session } from '@supabase/supabase-js';
-import { authService, type LoginCredentials } from '@/services';
+import { authService, invitationService, type LoginCredentials } from '@/services';
 import { isSupabaseConfigured } from '@/lib/supabase';
 import type { AppUser } from '@/types';
+
+const PENDING_INVITE_KEY = 'stockflow.pendingInviteToken';
 
 export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
 
@@ -18,6 +20,11 @@ interface AuthState {
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   sendPasswordReset: (email: string) => Promise<void>;
+  signUp: (email: string, password: string, fullName?: string) => Promise<void>;
+  /** Intenta reclamar una invitación pendiente almacenada tras el registro. Devuelve true si reclamó. */
+  claimPendingInvitation: () => Promise<boolean>;
+  /** Recarga el perfil del usuario actual desde la BD. */
+  refreshProfile: () => Promise<void>;
 }
 
 /** Carga el perfil asociado a una sesión y actualiza el estado. */
@@ -80,5 +87,49 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   sendPasswordReset: async (email) => {
     await authService.sendPasswordReset(email, `${window.location.origin}/login`);
+  },
+
+  signUp: async (email, password, fullName) => {
+    await authService.signUp(email, password, {
+      fullName,
+      redirectTo: `${window.location.origin}/login`,
+    });
+    // Guardamos el token pendiente si existe en la URL actual (viene del link de invitación)
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (token) {
+      localStorage.setItem(PENDING_INVITE_KEY, token);
+    }
+  },
+
+  claimPendingInvitation: async () => {
+    const token = localStorage.getItem(PENDING_INVITE_KEY);
+    if (!token) return false;
+
+    try {
+      await invitationService.claim(token);
+      localStorage.removeItem(PENDING_INVITE_KEY);
+      // Refrescamos el perfil para reflejar el nuevo tenant_id y rol al instante
+      // (la claim actualiza la BD, pero el estado en memoria aún tiene los datos viejos).
+      const session = get().session;
+      if (session) {
+        const user = await authService.fetchProfile(session.user.id);
+        set({ user });
+      }
+      return true;
+    } catch (e) {
+      // Si falla lo dejamos para reintentar en el próximo login
+      console.warn('No se pudo reclamar invitación pendiente:', e);
+      // Limpiamos para no loop infinito en caso de token inválido
+      localStorage.removeItem(PENDING_INVITE_KEY);
+      return false;
+    }
+  },
+
+  refreshProfile: async () => {
+    const session = get().session;
+    if (!session) return;
+    const user = await authService.fetchProfile(session.user.id);
+    set({ user });
   },
 }));

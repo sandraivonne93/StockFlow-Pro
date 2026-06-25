@@ -1,16 +1,43 @@
+import { useMemo } from 'react';
 import { NavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { PanelLeftClose, PanelLeft, Package2 } from 'lucide-react';
 import { useSidebarStore } from '@/store';
+import { useAuth, useAllProducts } from '@/hooks';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui';
 import { NAV_ITEMS } from './navigation';
+import { PATHS } from '@/routes/paths';
 
 /** Sidebar colapsable con navegación, marca y microinteracciones. */
 export function Sidebar() {
   const collapsed = useSidebarStore((s) => s.collapsed);
   const toggleCollapsed = useSidebarStore((s) => s.toggleCollapsed);
   const closeMobile = useSidebarStore((s) => s.closeMobile);
+  const { user, isSuperAdmin } = useAuth();
+  const { data: products = [] } = useAllProducts();
+
+  // Mostramos solo los ítems permitidos para el rol del usuario.
+  const navItems = useMemo(
+    () => NAV_ITEMS.filter((item) => !item.roles || (user && item.roles.includes(user.role))),
+    [user],
+  );
+
+  // Badge dinámico de alertas de stock bajo (solo para usuarios de tienda).
+  const lowStockCount = useMemo(() => {
+    if (!user || isSuperAdmin) return 0;
+    return products.filter((p) => p.currentStock <= p.minStock).length;
+  }, [products, user, isSuperAdmin]);
+
+  const navWithBadges = useMemo(
+    () =>
+      navItems.map((item) =>
+        item.to === PATHS.PRODUCTS
+          ? { ...item, badge: lowStockCount > 0 ? lowStockCount : undefined }
+          : item,
+      ),
+    [navItems, lowStockCount],
+  );
 
   return (
     <motion.aside
@@ -36,7 +63,7 @@ export function Sidebar() {
 
       {/* Navegación */}
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-        {NAV_ITEMS.map((item) => {
+        {navWithBadges.map((item) => {
           const Icon = item.icon;
           return (
             <NavLink

@@ -1,4 +1,4 @@
-import type { UserRole, TenantStatus, InvitationStatus } from '@/config';
+import type { UserRole, TenantStatus, InvitationStatus, MovementType } from '@/config';
 
 /** Tema visual de la aplicación. */
 export type Theme = 'light' | 'dark' | 'system';
@@ -55,6 +55,78 @@ export interface Invitation {
   expiresAt: string;
   acceptedAt: string | null;
   createdAt: string;
+}
+
+/** Categoría de productos. */
+export interface Category {
+  id: string;
+  tenantId: string;
+  name: string;
+  color: string;
+  icon: string;
+  createdAt: string;
+}
+
+export interface CategoryInput {
+  name: string;
+  color: string;
+  icon: string;
+}
+
+/** Producto del inventario. */
+export interface Product {
+  id: string;
+  tenantId: string;
+  categoryId: string | null;
+  categoryName?: string | null;
+  categoryColor?: string | null;
+  code: string;
+  name: string;
+  description: string | null;
+  costPrice: number;
+  salePrice: number;
+  currentStock: number;
+  minStock: number;
+  unit: string;
+  imageUrl: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProductInput {
+  categoryId: string | null;
+  code: string;
+  name: string;
+  description: string | null;
+  costPrice: number;
+  salePrice: number;
+  minStock: number;
+  unit: string;
+  imageUrl?: string | null;
+  /** Stock inicial (solo al crear). */
+  initialStock?: number;
+}
+
+/** Movimiento de stock (entrada/salida). */
+export interface Movement {
+  id: string;
+  tenantId: string;
+  productId: string;
+  productName?: string;
+  type: MovementType;
+  quantity: number;
+  reason: string | null;
+  note: string | null;
+  createdBy: string | null;
+  createdAt: string;
+}
+
+export interface MovementInput {
+  productId: string;
+  type: MovementType;
+  quantity: number;
+  reason: string | null;
+  note: string | null;
 }
 
 /** Respuesta paginada genérica. */
